@@ -19,7 +19,7 @@ const request = requestFactory({
   jar: true
 })
 
-const baseUrl = 'http://books.toscrape.com'
+const baseUrl = 'https://don.msf.fr'
 
 module.exports = new BaseKonnector(start)
 
@@ -32,7 +32,7 @@ async function start(fields) {
   log('info', 'Successfully logged in')
   // The BaseKonnector instance expects a Promise as return of the function
   log('info', 'Fetching the list of documents')
-  const $ = await request(`${baseUrl}/index.html`)
+  const $ = await request(`${baseUrl}/donateur/historic.php?ent_codsoc=ASSO`)
   // cheerio (https://cheerio.js.org/) uses the same api as jQuery (http://jquery.com/)
   log('info', 'Parsing list of documents')
   const documents = await parseDocuments($)
@@ -52,13 +52,13 @@ async function start(fields) {
 // even if this in another domain here, but it works as an example
 function authenticate(username, password) {
   return signin({
-    url: `http://quotes.toscrape.com/login`,
+    url: baseUrl + `/donateur/index.php`,
     formSelector: 'form',
-    formData: { username, password },
+    formData: { login: username, password: password },
     // the validate function will check if
     validate: (statusCode, $) => {
       // The login in toscrape.com always works excepted when no password is set
-      if ($(`a[href='/logout']`).length === 1) {
+      if ($(`a[href='/donateur/deconnexion.php']`).length === 1) {
         return true
       } else {
         // cozy-konnector-libs has its own logging function which format these logs with colors in
