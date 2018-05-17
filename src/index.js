@@ -32,7 +32,16 @@ async function start(fields) {
   log('info', 'Successfully logged in')
   // The BaseKonnector instance expects a Promise as return of the function
   log('info', 'Fetching the list of documents')
-  const $ = await request(`${baseUrl}/donateur/historic.php?ent_codsoc=ASSO`)
+  const form = {
+    form: {
+      anneeDon: 'tous',
+      typeDon: 'tous'
+    }
+  }
+  const $ = await request.post(
+    `${baseUrl}/donateur/historic.php?ent_codsoc=ASSO`,
+    form
+  )
   // cheerio (https://cheerio.js.org/) uses the same api as jQuery (http://jquery.com/)
   log('info', 'Parsing list of documents')
   const documents = await parseDocuments($)
@@ -79,32 +88,28 @@ function parseDocuments($) {
     $,
     {
       title: {
-        sel: 'h3 a',
-        attr: 'title'
+        sel: 'tr td.arial_16_gray',
+        parse: normalizeTitle
       },
       amount: {
-        sel: '.price_color',
+        sel: 'tr .arial_14_gray_bold',
         parse: normalizePrice
       },
-      url: {
-        sel: 'h3 a',
-        attr: 'title',
-        parse: url => `${baseUrl}/${url}`
-      },
       fileurl: {
-        sel: 'img',
-        attr: 'src',
-        parse: src => `${baseUrl}/${src}`
+        sel: 'tr td a',
+        attr: 'href',
+        parse: url => `${baseUrl}${url}`
       },
       filename: {
-        sel: 'h3 a',
-        attr: 'title',
-        parse: title => `${title}.jpg`
+        sel: 'tr td a',
+        parse: title => `${title}.pdf`
       }
     },
-    'article'
+    'table table table'
   )
-  return docs.map(doc => ({
+  let docs2 = docs.filter(doc => doc.title != '' && !isNaN(doc.amount))
+  log('info', docs2)
+  return docs2.map(doc => ({
     ...doc,
     // the saveBills function needs a date field
     // even if it is a little artificial here (these are not real bills)
@@ -121,7 +126,19 @@ function parseDocuments($) {
   }))
 }
 
+function normalizeTitle(title) {
+  return title
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+}
+
 // convert a price string to a float
 function normalizePrice(price) {
-  return parseFloat(price.trim().replace('£', ''))
+  return parseFloat(
+    price
+      .replace('Total', '')
+      .replace(/€.*/, '')
+      .trim()
+  )
 }
