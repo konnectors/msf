@@ -2,7 +2,6 @@ const {
   BaseKonnector,
   requestFactory,
   signin,
-  scrape,
   saveBills,
   log
 } = require('cozy-konnector-libs')
@@ -55,58 +54,65 @@ function authenticate(username, password) {
   })
 }
 
-// The goal of this function is to parse a html page wrapped by a cheerio instance
-// and return an array of js objects which will be saved to the cozy by saveBills (https://github.com/cozy/cozy-konnector-libs/blob/master/docs/api.md#savebills)
-function parseDocuments($) {
-  // you can find documentation about the scrape function here :
-  // https://github.com/konnectors/libs/blob/master/packages/cozy-konnector-libs/docs/api.md#scrape
-  const docs = scrape(
-    $,
-    {
-      title: {
-        sel: 'tr td.arial_16_gray',
-        parse: normalizeTitle
-      },
-      amount: {
-        sel: 'tr .arial_14_gray_bold',
-        parse: normalizePrice
-      },
-      fileurl: {
-        sel: 'tr td a',
-        attr: 'href',
-        parse: url => `${baseUrl}${url}`
-      },
-      filename: {
-        sel: 'tr td a',
-        parse: title => `${title}.pdf`
+async function parseDocuments($) {
+  let docs = []
+  const tables = $('table table table')
+  for (let i = 0; i < tables.length; i++) {
+    const table = tables[i]
+    const file = await extractFile($(table).find('tr td a'))
+    const rows = $(table).find('tr')
+    rows.each((j, row) => {
+      const cells = $(row).find('td')
+      if (cells.length == 5 && $(cells[1]).text() === 'DON') {
+        const date = $(cells[0]).text()
+        let doc = {
+          title: 'Don du ' + date,
+          amount: normalizePrice($(cells[3]).text()),
+          date: normalizeDate(date)
+        }
+        if (file) {
+          doc = { ...doc, ...file }
+        }
+        docs.push(doc)
       }
-    },
-    'table table table'
-  )
-  let docs2 = docs.filter(doc => doc.title != '' && !isNaN(doc.amount))
-  log('info', docs2)
-  return docs2.map(doc => ({
+    })
+  }
+  return docs.map(doc => ({
     ...doc,
-    // the saveBills function needs a date field
-    // even if it is a little artificial here (these are not real bills)
-    date: new Date(),
     currency: '€',
-    vendor: 'template',
+    vendor: 'MSF',
     metadata: {
-      // it can be interesting that we add the date of import. This is not mandatory but may be
-      // usefull for debugging or data migration
       importDate: new Date(),
-      // document version, usefull for migration after change of document structure
       version: 1
     }
   }))
 }
 
-function normalizeTitle(title) {
-  return title
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase()
+async function extractFile(link) {
+  if (link.length == 0) {
+    return
+  }
+  const pageUrl = baseUrl + link.attr('href')
+  const $a = await request(pageUrl)
+  const file = {
+    filename: `${link.text()}.pdf`,
+    fileurl: $a('#lien_download').attr('href')
+  }
+  // const dl = $a.html().match(/"(.*)"/)[1]
+  // log('info', {dl})
+  // const $b = await request({
+  //   uri: baseUrl + '/' + dl,
+  //   headers: {
+  //     referer: pageUrl
+  //   }
+  // })
+  // log('info', $b.html())
+  // const file = {
+  //   filename: `${link.text()}.pdf`,
+  //   fileurl: $b('#lien_download').attr('href')
+  // }
+  log('info', file)
+  return file
 }
 
 function normalizePrice(price) {
@@ -116,4 +122,9 @@ function normalizePrice(price) {
       .replace(/€.*/, '')
       .trim()
   )
+}
+
+function normalizeDate(date) {
+  const parts = date.split('/')
+  return new Date(parts[2], parts[1], parts[0], 12)
 }
