@@ -11,8 +11,9 @@ What's Cozy?
 What is this konnector about ?
 ------------------------------
 
-This konnector retrieves your <SOME DATA> and <SOME OTHER DATA> from <SERVICE>
-<YOUR DESCRIPTION HERE>
+This konnector retrieves your recurring donation to Médecins Sans Frontières.
+
+One-time donation is not yet supported.
 
 ### Open a Pull-Request
 
