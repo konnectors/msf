@@ -30,12 +30,14 @@ async function start(fields) {
     `${baseUrl}/donateur/historic.php?ent_codsoc=ASSO`,
     form
   )
-  log('info', 'Parsing list of documents')
-  const documents = await parseDocuments($)
-  log('info', 'Saving data to Cozy')
-  await saveBills(documents, fields.folderPath, {
-    identifiers: ['MEDECINS SANS FRONTIERES', 'MSF']
-  })
+  log('info', 'Parsing and saving list of documents')
+  const tables = $('#bloc_central table table table')
+  for (let i = 0; i < tables.length; i++) {
+    const docs = await parseDocuments($, tables[i])
+    await saveBills(docs, fields.folderPath, {
+      identifiers: ['MEDECINS SANS FRONTIERES', 'MSF']
+    })
+  }
 }
 
 function authenticate(username, password) {
@@ -54,29 +56,27 @@ function authenticate(username, password) {
   })
 }
 
-async function parseDocuments($) {
+async function parseDocuments($, table) {
   let docs = []
-  const tables = $('table table table')
-  for (let i = 0; i < tables.length; i++) {
-    const table = tables[i]
-    const file = await extractFile($(table).find('tr td a'))
-    const rows = $(table).find('tr')
-    rows.each((j, row) => {
-      const cells = $(row).find('td')
-      if (cells.length == 5 && $(cells[1]).text() === 'DON') {
-        const date = $(cells[0]).text()
-        let doc = {
-          title: 'Don du ' + date,
-          amount: normalizePrice($(cells[3]).text()),
-          date: normalizeDate(date)
-        }
-        if (file) {
-          doc = { ...doc, ...file }
-        }
-        docs.push(doc)
+  const file = await extractFile($(table).find('tr td a'))
+
+  const rows = $(table).find('tr')
+  rows.each((j, row) => {
+    const cells = $(row).find('td')
+    if (cells.length == 5 && $(cells[1]).text() === 'DON') {
+      const date = $(cells[0]).text()
+      let doc = {
+        title: 'Don du ' + date,
+        amount: normalizePrice($(cells[3]).text()),
+        date: normalizeDate(date)
       }
-    })
-  }
+      if (file) {
+        doc = { ...doc, ...file }
+      }
+      docs.push(doc)
+    }
+  })
+
   return docs.map(doc => ({
     ...doc,
     currency: '€',
@@ -92,27 +92,21 @@ async function extractFile(link) {
   if (link.length == 0) {
     return
   }
+
   const pageUrl = baseUrl + link.attr('href')
-  const $a = await request(pageUrl)
-  const file = {
-    filename: `${link.text()}.pdf`,
-    fileurl: $a('#lien_download').attr('href')
+  let $ = await request(pageUrl)
+
+  const redirect_url = $('script')
+    .html()
+    .match(/"(.*)"/)[1]
+
+  $ = await request(`${baseUrl}/donateur/${redirect_url}`)
+  const fileurl = baseUrl + '/donateur/' + $('#lien_download').attr('href')
+
+  return {
+    fileurl,
+    filename: link.text() + '.pdf'
   }
-  // const dl = $a.html().match(/"(.*)"/)[1]
-  // log('info', {dl})
-  // const $b = await request({
-  //   uri: baseUrl + '/' + dl,
-  //   headers: {
-  //     referer: pageUrl
-  //   }
-  // })
-  // log('info', $b.html())
-  // const file = {
-  //   filename: `${link.text()}.pdf`,
-  //   fileurl: $b('#lien_download').attr('href')
-  // }
-  log('info', file)
-  return file
 }
 
 function normalizePrice(price) {
