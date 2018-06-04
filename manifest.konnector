@@ -1,13 +1,13 @@
 {
   "version": "1.0.0",
-  "name": "Connector template",
+  "name": "Médecins sans frontières",
   "type": "konnector",
   "language": "node",
-  "icon": "icon.png",
-  "slug": "template",
-  "source": "git://github.com/konnectors/cozy-konnector-template.git",
+  "icon": "msf.svg",
+  "slug": "msf",
+  "source": "git://github.com/konnectors/msf.git",
   "editor": "Cozy",
-  "vendor_link": "Link to the target website",
+  "vendor_link": "https://don.msf.fr/donateur/index.php",
   "categories": ["other"],
   "fields": {
     "login": {
@@ -26,7 +26,7 @@
   "data_types": [
     "bill"
   ],
-  "screenshots": [ "screenshots/screenshot1.png" ],
+  "screenshots": [],
   "permissions": {
     "bank operations": {
       "type": "io.cozy.bank.operations"
@@ -49,17 +49,17 @@
   "langs": ["fr", "en"],
   "locales": {
     "fr": {
-      "short_description": "Template de connecteur",
-      "long_description": "Ce template récupère une liste de livres sur un site de scraping",
+      "short_description": "Récupère vos justificatifs de dons",
+      "long_description": "Récupère vos justificatifs de dons",
       "permissions": {
         "bank operations": {
-          "description": "Utilisé pour relier les factures à des operations bancaires"
+          "description": "Utilisé pour relier les dons à des operations bancaires"
         },
         "bills": {
-          "description": "Utilisé pour sauver les données des factures"
+          "description": "Utilisé pour sauver les données des dons"
         },
         "files": {
-          "description": "Utilisé pour sauvegarder les factures"
+          "description": "Utilisé pour sauvegarder les justificatifs de dons"
         },
         "accounts": {
           "description": "Utilisé pour obtenir les données du compte"
@@ -67,17 +67,17 @@
       }
     },
     "en": {
-      "short_description": "Connector template",
-      "long_description": "This template fetches a list of books from a scraping website",
+      "short_description": "Fetch your Médecins sans frontières donations receipts",
+      "long_description": "Fetch your Médecins sans frontières donations receipts",
       "permissions": {
         "bank operations": {
-          "description": "Required to link bank operations to bills"
+          "description": "Required to link bank operations to receipts"
         },
         "bills": {
-          "description": "Required to save the bills data"
+          "description": "Required to save the receipts data"
         },
         "files": {
-          "description": "Required to save the bills"
+          "description": "Required to save the receipts"
         },
         "accounts": {
           "description": "Required to get the account's data"
