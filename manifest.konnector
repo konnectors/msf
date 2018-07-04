@@ -84,5 +84,6 @@
         }
       }
     }
-  }
+  },
+  "banksTransactionRegExp": "\\b(medecins sans frontieres|msf)\\b"
 }
