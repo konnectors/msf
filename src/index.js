@@ -38,11 +38,19 @@ async function start(fields) {
   )
   log('info', 'Parsing and saving list of documents')
   const tables = $('#bloc_central table table table')
+  let nbBills = 0
   for (let i = 0; i < tables.length; i++) {
     const docs = await parseDocuments($, tables[i])
-    await saveBills(docs, fields.folderPath, {
-      identifiers: ['MEDECINS SANS FRONTIERES', 'MSF']
-    })
+    if (docs.length) {
+      nbBills += docs.length
+      await saveBills(docs, fields.folderPath, {
+        identifiers: ['MEDECINS SANS FRONTIERES', 'MSF']
+      })
+    }
+  }
+
+  if (nbBills === 0) {
+    log('warn', `Could not find any bill to download`)
   }
 }
 
