@@ -58,7 +58,7 @@ function authenticate(username, password) {
   return signin({
     url: baseUrl + `/donateur/index.php`,
     formSelector: 'form',
-    formData: { login: username, password: password },
+    formData: { email: username, password: password },
     validate: (statusCode, $) => {
       if ($(`a[href='/donateur/deconnexion.php']`).length === 1) {
         return true
