@@ -5,7 +5,7 @@
   "language": "node",
   "icon": "msf.svg",
   "slug": "msf",
-  "source": "git://github.com/konnectors/msf.git",
+  "source": "git@github.com:konnectors/msf.git",
   "editor": "Cozy",
   "vendor_link": "https://don.msf.fr/donateur/index.php",
   "categories": [
