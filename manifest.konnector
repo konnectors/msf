@@ -3,7 +3,7 @@
   "name": "Médecins sans frontières",
   "type": "konnector",
   "language": "node",
-  "icon": "msf.svg",
+  "icon": "icon.svg",
   "slug": "msf",
   "source": "git://github.com/konnectors/msf.git",
   "editor": "Cozy",
