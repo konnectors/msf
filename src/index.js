@@ -124,12 +124,7 @@ async function extractFile(link) {
 }
 
 function normalizePrice(price) {
-  return parseFloat(
-    price
-      .replace('Total', '')
-      .replace(/€.*/, '')
-      .trim()
-  )
+  return parseFloat(price.replace('Total', '').replace(/€.*/, '').trim())
 }
 
 function normalizeDate(date) {
